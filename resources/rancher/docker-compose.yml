@@ -21,7 +21,7 @@ services:
 
   prom-conf:
       tty: true
-      image: lanopsdev/services-monitoring-prom-conf:v0.0.1
+      image: lanopsdev/monitoring-prom-conf:v0.0.1
       labels:
         io.rancher.scheduler.affinity:host_label: type=node
       volumes:
@@ -51,7 +51,7 @@ services:
 
   graf-db:
       tty: true
-      image: lanopsdev/services-monitoring-graf-db:v0.0.1
+      image: lanopsdev/monitoring-graf-db:v0.0.1
       command: cat
       volumes:
         - grafana-data:/var/lib/grafana/

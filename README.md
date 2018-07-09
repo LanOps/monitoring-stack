@@ -1,4 +1,4 @@
-### Services-Monitoring
+### LanOps Monitoring Stack
 
 Monitoring for ya boiz
 
