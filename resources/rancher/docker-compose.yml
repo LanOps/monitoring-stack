@@ -1,0 +1,97 @@
+version: "2"
+services:
+  cadvisor:
+    labels:
+      io.rancher.scheduler.global: 'true'
+    tty: true
+    image: google/cadvisor:latest
+    stdin_open: true
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:rw"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+
+  node-exporter:
+    labels:
+      io.rancher.scheduler.global: 'true'
+    tty: true
+    image: prom/node-exporter:v0.14.0
+    stdin_open: true
+
+  prom-conf:
+      tty: true
+      image: lanops/services-monitoring-prom-conf:v0.0.1
+      labels:
+        io.rancher.scheduler.affinity:host_label: type=node
+      volumes:
+        - /etc/prom-conf/
+      # net: none
+
+  prometheus:
+      tty: true
+      image: prom/prometheus:v2.1.0
+      command: --config.file=/etc/prom-conf/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/etc/prometheus/console_libraries --web.console.templates=/etc/prometheus/consoles
+      # ports:
+      #   - 9090:9090
+      labels:
+        io.rancher.sidekicks: prom-conf
+        io.rancher.scheduler.affinity:host_label: type=node
+      volumes_from:
+        - prom-conf
+      volumes:
+        - prometheus-data:/prometheus
+      links:
+        - cadvisor:cadvisor
+        - node-exporter:node-exporter
+        - prometheus-rancher-exporter:prometheus-rancher-exporter
+      volume_driver: local
+      extra_hosts:
+      - "rancher-server:172.31.1.150"
+
+  graf-db:
+      tty: true
+      image: lanops/services-monitoring-graf-db:v0.0.5
+      command: cat
+      volumes:
+        - grafana-data:/var/lib/grafana/
+      volume_driver: local
+      labels:
+        io.rancher.scheduler.affinity:host_label: type=node
+      # net: none
+
+  grafana:
+      tty: true
+      image: grafana/grafana:5.0.0
+      # ports:
+      #   - 3000:3000
+      labels:
+        io.rancher.sidekicks: graf-db
+        io.rancher.scheduler.affinity:host_label: type=node
+      volumes_from:
+         - graf-db
+      links:
+        - prometheus:prometheus
+        - prometheus-rancher-exporter:prometheus-rancher-exporter
+
+  graf-db-access:
+      tty: true
+      image: acttaiwan/phpliteadmin:latest
+      # ports:
+      #   - 2015:2015
+      volumes:
+        - grafana-data:/db
+      labels:
+        io.rancher.scheduler.affinity:host_label: type=node
+
+  prometheus-rancher-exporter:
+      tty: true
+      labels:
+        io.rancher.container.create_agent: 'true'
+        io.rancher.container.agent.role: environment
+        io.rancher.scheduler.affinity:host_label: type=node
+      image: infinityworks/prometheus-rancher-exporter:v0.22.52
+      
+volumes:
+  grafana-data:
+  prometheus-data:

@@ -1,0 +1,24 @@
+# PHP CircleCI 2.0 configuration file
+
+version: 2
+jobs:
+  deploy-staging:
+    docker:
+      - image: alpine:3.6
+    working_directory: ~/repo
+    steps:
+      - run: apk add --update --no-cache git
+      - checkout
+      - run: ls -a
+      - run: resources/ci/deploy.sh $CIRCLE_TAG
+workflows:
+  version: 2
+  # Tagged Builds
+  deploy:
+    jobs:
+      - deploy-staging:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
