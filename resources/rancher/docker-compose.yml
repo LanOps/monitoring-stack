@@ -21,7 +21,7 @@ services:
 
   prom-conf:
       tty: true
-      image: lanops/services-monitoring-prom-conf:v0.0.1
+      image: lanopsdev/services-monitoring-prom-conf:v0.0.1
       labels:
         io.rancher.scheduler.affinity:host_label: type=node
       volumes:
@@ -47,11 +47,11 @@ services:
         - prometheus-rancher-exporter:prometheus-rancher-exporter
       volume_driver: local
       extra_hosts:
-      - "rancher-server:172.31.1.150"
+      - "rancher-server:0.0.0.0"
 
   graf-db:
       tty: true
-      image: lanops/services-monitoring-graf-db:v0.0.5
+      image: lanopsdev/services-monitoring-graf-db:v0.0.1
       command: cat
       volumes:
         - grafana-data:/var/lib/grafana/
